@@ -1,0 +1,128 @@
+
+// 16-bit Arithmetic Logic Unit
+module alu(r, zero, overflow, a, b, s);
+  input [15:0] a, b;
+  input [3:0] s;
+  output [15:0] r;
+  output zero, overflow;
+
+  wire set;
+  ALU1   alu0 (r[0],   co0,  a[0],  b[0],  set,  s, s[2]),
+         alu1 (r[1],   co1,  a[1],  b[1],  1'b0, s, co0),
+         alu2 (r[2],   co2,  a[2],  b[2],  1'b0, s, co1),
+         alu3 (r[3],   co3,  a[3],  b[3],  1'b0, s, co2),
+         alu4 (r[4],   co4,  a[4],  b[4],  1'b0, s, co3),
+         alu5 (r[5],   co5,  a[5],  b[5],  1'b0, s, co4),
+         alu6 (r[6],   co6,  a[6],  b[6],  1'b0, s, co5),
+         alu7 (r[7],   co7,  a[7],  b[7],  1'b0, s, co6),
+         alu8 (r[8],   co8,  a[8],  b[8],  1'b0, s, co7),
+         alu9 (r[9],   co9,  a[9],  b[9],  1'b0, s, co8),
+         alu10 (r[10], co10, a[10], b[10], 1'b0, s, co9),
+         alu11 (r[11], co11, a[11], b[11], 1'b0, s, co10),
+         alu12 (r[12], co12, a[12], b[12], 1'b0, s, co11),
+         alu13 (r[13], co13, a[13], b[13], 1'b0, s, co12),
+         alu14 (r[14], co14, a[14], b[14], 1'b0, s, co13);
+  ALUmsb alu15 (r[15], set, overflow, a[15], b[15], 1'b0, s, co14);
+
+  nor no1 (zero, r); // TODO does this work? Multiple bits!
+endmodule
+
+// ALU subsection for all bits other than most significant bit
+module ALU1(r, co, a, b, less, s, ci);
+  input a, b, less, ci;
+  input [3:0] s;
+  output r, co;
+
+  not n1 (na, a),
+      n2 (nb, b);
+
+  mux_2x1 inA (A, {na, a}, s[3]),
+          inB (B, {nb, b}, s[2]);
+
+  and a1 (r0, A, B);
+  or o1 (r1, A, B);
+  fulladder fa1 (co, r2, A, B, ci);
+
+  mux_4x1 s1 (r, {less, r2, r1, r0}, s[1:0]);
+endmodule
+
+// ALU subsection for most significant bit
+module ALUmsb(r, set, of, a, b, less, s, ci);
+  input a, b, less, ci;
+  input [3:0] s;
+  output r, set, of;
+
+  not n1 (na, a),
+      n2 (nb, b);
+
+  mux_2x1 inA (A, {na, a}, s[3]),
+          inB (B, {nb, b}, s[2]);
+
+  and a1 (r0, A, B);
+  or o1 (r1, A, B);
+  fulladder fa1 (co, set, A, B, ci);
+
+  mux_4x1 s1 (r, {less, set, r1, r0}, s[1:0]);
+
+  xor xo1 (of0, ci, co);
+  and a3 (of, of0, s[1]);
+endmodule
+
+// 2x1 multiplexer
+module mux_2x1(out, in, select);
+  input [1:0] in;
+  input select;
+  output out;
+  wire a, b, selectprime;
+  not n1 (selectprime, select);
+  and a1 (a, in[0], selectprime);
+  and a2 (b, in[1], select);
+  or o1 (out, a, b);
+endmodule
+
+// 4x1 multiplexer
+module mux_4x1(out, in, select);
+  input [3:0] in;
+  input [1:0] select;
+  output out;
+
+  not n1 (selectprime, select[1]);
+
+  wire [1:0] work;
+  mux_2x1 low (work[0], in[1:0], select[0]),
+          high (work[1], in[3:2], select[0]),
+          comb (out, work, select[1]);
+endmodule
+
+// 1-bit full adder
+module fulladder(co, s, x, y, ci);
+  input x, y, ci;
+  output s, co;
+  halfadder hadd1 (c1, s1, x, y),
+            hadd2 (c2, s, s1, ci);
+  or o1 (co, c1, c2);
+endmodule
+
+// 1-bit half adder
+module halfadder(c, s, x, y);
+  input x, y;
+  output c, s;
+  and a0 (c, x, y);
+  not n0 (nc, c);
+  or o0 (a, x, y);
+  and a1 (s, a, nc);
+endmodule
+
+// 16-bit single shift left
+module shift_left_1(shifted, in);
+  input in[15:0];
+  output shifted[15:0];
+  shifted = {in[14:0], 0b'0};
+endmodule
+
+// Sign extender converting an 8-bit two's complement number to 16 bits
+module sign_extend_8_to_16 (extended, base);
+  input base[7:0];
+  output extended [16:0];
+  extended = {{8{base[7]}}, base}; // TODO verify this shorthand works
+endmodule
