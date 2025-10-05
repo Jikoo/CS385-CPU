@@ -24,7 +24,7 @@ module alu(r, zero, overflow, a, b, s);
          alu14 (r[14], co14, a[14], b[14], 1'b0, s, co13);
   ALUmsb alu15 (r[15], set, overflow, a[15], b[15], 1'b0, s, co14);
 
-  nor no1 (zero, r); // TODO does this work? Multiple bits!
+  nor no1 (zero, r);
 endmodule
 
 // ALU subsection for all bits other than most significant bit
@@ -115,14 +115,14 @@ endmodule
 
 // 16-bit single shift left
 module shift_left_1(shifted, in);
-  input in[15:0];
-  output shifted[15:0];
-  shifted = {in[14:0], 0b'0};
+  input [15:0] in;
+  output [15:0] shifted;
+  assign shifted = {in[14:0], 1'b0};
 endmodule
 
 // Sign extender converting an 8-bit two's complement number to 16 bits
 module sign_extend_8_to_16 (extended, base);
-  input base[7:0];
-  output extended [16:0];
-  extended = {{8{base[7]}}, base}; // TODO verify this shorthand works
+  input [7:0] base;
+  output [16:0] extended;
+  assign extended = {{8{base[7]}}, base};
 endmodule
