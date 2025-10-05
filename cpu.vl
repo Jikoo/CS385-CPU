@@ -1,4 +1,107 @@
 
+// Top-level CPU module
+module CPU (clock, programCounter, aluResult, instructionReg);
+  // Module Inputs
+  input clock; // Main system clock signal
+
+  // Module Outputs
+  output [15:0] aluResult, instructionReg, programCounter; // ALU output, current instruction, and PC value
+
+  // Internal Registers and Wires
+  reg [15:0] programCounter;               // Register to hold the address of the current instruction
+  reg [15:0] instructionMemory[0:1023];    // Memory block for storing the program instructions
+  wire [3:0] aluControl;                   // Control signals for the ALU operation
+  wire [1:0] writeRegAddr;                 // Address of the register to be written to
+  wire [15:0] instructionReg, nextPC, regDataA, regDataB, aluResult, regData2, immediateExtended;
+  wire writeEnable, unused_zero, isZero, regDestSelect, aluSrcSelect;
+
+
+  initial begin
+    instructionMemory[0] = 16'b0111_00_01_00001111; // addi $t1, $0, 15   ($t1 should be 15)
+    instructionMemory[1] = 16'b0111_00_10_00000111; // addi $t2, $0, 7    ($t2 should be 7)
+    instructionMemory[2] = 16'b0010_01_10_11_000000; // and  $t3, $t1, $t2  ($t3 should be 7)
+    instructionMemory[3] = 16'b0001_01_11_10_000000; // sub  $t2, $t1, $t3  ($t2 should be 8)
+    instructionMemory[4] = 16'b0011_10_11_10_000000; // or   $t2, $t2, $t3  ($t2 should be 15)
+    instructionMemory[5] = 16'b0000_10_11_11_000000; // add  $t3, $t2, $t3  ($t3 should be 22)
+    instructionMemory[6] = 16'b0100_10_11_01_000000; // nor  $t1, $t2, $t3  ($t1 should be -32)
+    instructionMemory[7] = 16'b0110_11_10_01_000000; // slt  $t1, $t3, $t2  ($t1 should be 0)
+    instructionMemory[8] = 16'b0110_10_11_01_000000; // slt  $t1, $t2, $t3  ($t1 should be 1)
+  end
+
+  // Set initial program counter value
+  initial programCounter = 0;
+
+  // Instruction Fetch (IF) Stage
+  assign instructionReg = instructionMemory[programCounter >> 1]; // Retrieve instruction from memory. PC is byte-addressed, memory is 16-bit word-addressed.
+
+  // Instruction Decode (ID) Stage
+  assign writeRegAddr = (regDestSelect) ? instructionReg[7:6] : instructionReg[9:8]; // Mux to select the destination register (rd for R-type, rt for I-type)
+  assign regDataB  = (aluSrcSelect) ? immediateExtended : regData2; // Mux to select ALU's second operand (register or sign-extended immediate)
+  assign immediateExtended = {{8{instructionReg[7]}}, instructionReg[7:0]}; // Sign-extend the 8-bit immediate to 16 bits
+
+  // Instantiate CPU Components
+  RegisterFile reg_file (instructionReg[11:10], instructionReg[9:8], writeRegAddr, aluResult, writeEnable, regDataA, regData2, clock);
+  ALU pc_incrementer (nextPC, unused_zero, ignored, programCounter, 16'd2, 4'b0010); // ALU used to calculate PC + 2
+  ALU execution_unit (aluResult, isZero, ignored, regDataA, regDataB, aluControl);    // Main ALU for instruction execution
+  MainControl main_control (instructionReg[15:12], {regDestSelect, aluSrcSelect, writeEnable, aluControl}); // Decodes opcode to generate control signals
+
+  // Update Program Counter on the clock's falling edge
+  always @(negedge clock) begin
+    programCounter <= nextPC; // Move to the next instruction
+  end
+endmodule
+
+// Main Control Unit
+module MainControl (opcode, controlSignals);
+  // Inputs
+  input [3:0] opcode; // 4-bit instruction opcode
+  // Outputs
+  output reg [6:0] controlSignals; // Bundled control signals for the datapath
+
+  // Control Signal bits: {regDestSelect, aluSrcSelect, writeEnable, aluControl[3:0]}
+  always @(opcode)
+    case (opcode)
+      // R-type Instructions
+      4'b0000: controlSignals = 7'b1_0_1_0010; // add
+      4'b0001: controlSignals = 7'b1_0_1_0110; // sub
+      4'b0010: controlSignals = 7'b1_0_1_0000; // and
+      4'b0011: controlSignals = 7'b1_0_1_0001; // or
+      4'b0100: controlSignals = 7'b1_0_1_1100; // nor
+      4'b0101: controlSignals = 7'b1_0_1_1101; // nand
+      4'b0110: controlSignals = 7'b1_0_1_0111; // slt
+
+      // I-type Instructions
+      4'b0111: controlSignals = 7'b0_1_1_0010; // addi
+    endcase
+endmodule
+
+// Register File
+module RegisterFile (readAddr1, readAddr2, writeAddr, writeData, writeEnable, readData1, readData2, clock);
+  // Inputs
+  input [1:0] readAddr1, readAddr2; // Addresses for reading two registers
+  input [1:0] writeAddr;            // Address for writing to a register
+  input [15:0] writeData;           // Data to be written
+  input writeEnable;                // Control signal to enable writing
+  input clock;                      // System clock for synchronous writes
+
+  // Outputs
+  output [15:0] readData1, readData2; // Data read from the specified registers
+
+  reg [15:0] registerBank[0:3];     // Array of four 16-bit registers
+
+  // Combinational read logic
+  assign readData1 = registerBank[readAddr1];
+  assign readData2 = registerBank[readAddr2];
+
+  // Initialize register $0 to be a constant zero
+  initial registerBank[0] = 0;
+
+  // Synchronous write logic
+  always @(negedge clock)
+    if (writeEnable == 1 && writeAddr != 0) // Write only if enabled and not to register $0
+      registerBank[writeAddr] <= writeData;
+endmodule
+
 // 16-bit Arithmetic Logic Unit
 module ALU(r, zero, overflow, a, b, s);
   input [15:0] a, b;
@@ -125,4 +228,28 @@ module sign_extend_8_to_16 (extended, base);
   input [7:0] base;
   output [16:0] extended;
   assign extended = {{8{base[7]}}, base};
+endmodule
+
+// Testbench module for the CPU
+module CPU_Testbench ();
+  reg clock_tb;
+  wire signed [15:0] aluResult_tb, instruction_tb, pc_tb;
+
+  // Instantiate the CPU for testing
+  CPU cpu_under_test(clock_tb, pc_tb, aluResult_tb, instruction_tb);
+
+  // Generate a clock signal that toggles every 1 time unit
+  always #1 clock_tb = ~clock_tb;
+
+  // Simulation control and display
+  initial begin
+    $display();
+    $display ("Clock  PC        Instruction        ALU Result (Decimal & Binary)");
+    $monitor ("%b     %2d   %16b    %3d (%16b)", clock_tb, pc_tb, instruction_tb, aluResult_tb, aluResult_tb);
+    clock_tb = 1;
+    #16; // Run simulation for 16 time units
+    $monitoroff;
+    $display("\nSimulation complete.");
+    $finish;
+  end
 endmodule
