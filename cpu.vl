@@ -1,22 +1,22 @@
 
 // 16-bit Arithmetic Logic Unit
-module alu(r, zero, overflow, a, b, s);
+module ALU(r, zero, overflow, a, b, s);
   input [15:0] a, b;
   input [3:0] s;
   output [15:0] r;
   output zero, overflow;
 
   wire set;
-  ALU1   alu0 (r[0],   co0,  a[0],  b[0],  set,  s, s[2]),
-         alu1 (r[1],   co1,  a[1],  b[1],  1'b0, s, co0),
-         alu2 (r[2],   co2,  a[2],  b[2],  1'b0, s, co1),
-         alu3 (r[3],   co3,  a[3],  b[3],  1'b0, s, co2),
-         alu4 (r[4],   co4,  a[4],  b[4],  1'b0, s, co3),
-         alu5 (r[5],   co5,  a[5],  b[5],  1'b0, s, co4),
-         alu6 (r[6],   co6,  a[6],  b[6],  1'b0, s, co5),
-         alu7 (r[7],   co7,  a[7],  b[7],  1'b0, s, co6),
-         alu8 (r[8],   co8,  a[8],  b[8],  1'b0, s, co7),
-         alu9 (r[9],   co9,  a[9],  b[9],  1'b0, s, co8),
+  ALU1   alu0  (r[0],  co0,  a[0],  b[0],  set,  s, s[2]),
+         alu1  (r[1],  co1,  a[1],  b[1],  1'b0, s, co0),
+         alu2  (r[2],  co2,  a[2],  b[2],  1'b0, s, co1),
+         alu3  (r[3],  co3,  a[3],  b[3],  1'b0, s, co2),
+         alu4  (r[4],  co4,  a[4],  b[4],  1'b0, s, co3),
+         alu5  (r[5],  co5,  a[5],  b[5],  1'b0, s, co4),
+         alu6  (r[6],  co6,  a[6],  b[6],  1'b0, s, co5),
+         alu7  (r[7],  co7,  a[7],  b[7],  1'b0, s, co6),
+         alu8  (r[8],  co8,  a[8],  b[8],  1'b0, s, co7),
+         alu9  (r[9],  co9,  a[9],  b[9],  1'b0, s, co8),
          alu10 (r[10], co10, a[10], b[10], 1'b0, s, co9),
          alu11 (r[11], co11, a[11], b[11], 1'b0, s, co10),
          alu12 (r[12], co12, a[12], b[12], 1'b0, s, co11),
