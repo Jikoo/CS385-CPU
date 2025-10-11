@@ -35,8 +35,10 @@ module CPU (clock, programCounter, aluResult, instructionReg);
   assign instructionReg = instructionMemory[programCounter >> 1]; // Retrieve instruction from memory. PC is byte-addressed, memory is 16-bit word-addressed.
 
   // Instruction Decode (ID) Stage
-  assign writeRegAddr = (regDestSelect) ? instructionReg[7:6] : instructionReg[9:8]; // Mux to select the destination register (rd for R-type, rt for I-type)
-  assign regDataB  = (aluSrcSelect) ? immediateExtended : regData2; // Mux to select ALU's second operand (register or sign-extended immediate)
+  // Mux to select the destination register (rd for R-type, rt for I-type)
+  mux_2x2 muxReg (writeRegAddr, {instructionReg[7:6], instructionReg[9:8]}, regDestSelect);
+  // Mux to select ALU's second operand (register or sign-extended immediate)
+  mux_2x16 muxData (regDataB, {immediateExtended, regData2}, aluSrcSelect);
   assign immediateExtended = {{8{instructionReg[7]}}, instructionReg[7:0]}; // Sign-extend the 8-bit immediate to 16 bits
 
   // Instantiate CPU Components
@@ -169,6 +171,30 @@ module ALUmsb(r, set, of, a, b, less, s, ci);
 
   xor xo1 (of0, ci, co);
   and a3 (of, of0, s[1]);
+endmodule
+
+// 2x16 multiplexer
+module mux_2x16(out, in, select);
+  input [31:0] in;
+  input select;
+  output [15:0] out;
+  mux_2x2 mux0 (out[1:0],   {in[17:16], in[1:0]},   select),
+          mux1 (out[3:2],   {in[19:18], in[3:2]},   select),
+          mux2 (out[5:4],   {in[21:20], in[5:4]},   select),
+          mux3 (out[7:6],   {in[23:22], in[7:6]},   select),
+          mux4 (out[9:8],   {in[25:24], in[9:8]},   select),
+          mux5 (out[11:10], {in[27:26], in[11:10]}, select),
+          mux6 (out[13:12], {in[29:28], in[13:12]}, select),
+          mux7 (out[15:14], {in[31:30], in[15:14]}, select);
+endmodule
+
+// 2x2 multiplexer
+module mux_2x2(out, in, select);
+  input [3:0] in;
+  input select;
+  output [1:0] out;
+  mux_2x1 muxLow  (out[0], {in[2], in[0]}, select),
+          muxHigh (out[1], {in[3], in[1]}, select);
 endmodule
 
 // 2x1 multiplexer
