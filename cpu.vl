@@ -8,7 +8,6 @@ module CPU (clock,WD,IR,PC);
   wire [15:0] IR,SignExtend,NextPC,RD2,A,B,ALUOut,PCplus2,Target;
   wire [1:0] WR;
   wire [3:0] ALUctl;
-  wire [1:0] ALUOp;
   initial begin
     // Program: swap memory cells and compute absolute value
     IMemory[0] = 16'b1000_00_01_00000000;  // lw $t1, 0($0)
@@ -37,11 +36,12 @@ module CPU (clock,WD,IR,PC);
   ALU execution_unit (ALUOut, Zero, ignored, A, B, ALUctl);
   ALU branch_unit (Target, ignored, ignored, PCplus2, SignExtend<<1, 4'd2);
   MainControl MainCtr (IR[15:12],{RegDst,ALUSrc,MemtoReg,RegWrite,MemWrite,BEQ,BNE,ALUctl});
+  BranchControl branchCtl (BranchTaken, BEQ, BNE, Zero);
   
   mux_2x2 muxReg (WR, {IR[7:6], IR[9:8]}, RegDst);
   mux_2x16 muxWriteReg (WD,{DMemory[ALUOut>>1], ALUOut}, MemtoReg);
   mux_2x16 muxData (B, {SignExtend, RD2}, ALUSrc);
-  mux_2x16 muxBranch (NextPC, {Target, PCplus2}, BEQ && Zero || BNE && ~Zero);
+  mux_2x16 muxBranch (NextPC, {Target, PCplus2}, BranchTaken);
 
   always @(negedge clock) begin
     PC <= NextPC;
@@ -76,6 +76,17 @@ module MainControl (Op, Control);
       4'b1010: Control = 11'b0_0_0_0_0_1_0_0110;  // beq
       4'b1011: Control = 11'b0_0_0_0_0_0_1_0110;  // bne
     endcase
+endmodule
+
+// Branch Control Unit
+module BranchControl (BranchTaken, BEQ, BNE, Zero);
+  output BranchTaken;
+  input BEQ, BNE, Zero;
+
+  not n1 (NotZero, Zero);
+  and a1 (BeqTaken, BEQ, Zero);
+  and a2 (BneTaken, BNE, NotZero);
+  or o1 (BranchTaken, BeqTaken, BneTaken);
 endmodule
 
 // Register File
