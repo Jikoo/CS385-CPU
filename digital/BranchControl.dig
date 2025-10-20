@@ -22,7 +22,7 @@
           <boolean>true</boolean>
         </entry>
       </elementAttributes>
-      <pos x="620" y="180"/>
+      <pos x="660" y="180"/>
     </visualElement>
     <visualElement>
       <elementName>And</elementName>
@@ -31,14 +31,8 @@
           <string>wideShape</string>
           <boolean>true</boolean>
         </entry>
-        <entry>
-          <string>inverterConfig</string>
-          <inverterConfig>
-            <string>In_2</string>
-          </inverterConfig>
-        </entry>
       </elementAttributes>
-      <pos x="620" y="260"/>
+      <pos x="660" y="260"/>
     </visualElement>
     <visualElement>
       <elementName>Or</elementName>
@@ -68,7 +62,7 @@
           <string>BEQ</string>
         </entry>
       </elementAttributes>
-      <pos x="560" y="180"/>
+      <pos x="500" y="180"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
@@ -78,7 +72,7 @@
           <string>BNE</string>
         </entry>
       </elementAttributes>
-      <pos x="560" y="260"/>
+      <pos x="500" y="260"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
@@ -88,27 +82,54 @@
           <string>Zero</string>
         </entry>
       </elementAttributes>
-      <pos x="560" y="340"/>
+      <pos x="500" y="340"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
       <elementAttributes>
+        <entry>
+          <string>textFontSize</string>
+          <int>16</int>
+        </entry>
         <entry>
           <string>Description</string>
           <string>BeqTaken</string>
         </entry>
       </elementAttributes>
-      <pos x="740" y="220"/>
+      <pos x="780" y="200"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
       <elementAttributes>
         <entry>
+          <string>textFontSize</string>
+          <int>16</int>
+        </entry>
+        <entry>
           <string>Description</string>
           <string>BneTaken</string>
         </entry>
       </elementAttributes>
-      <pos x="740" y="260"/>
+      <pos x="780" y="260"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Not</elementName>
+      <elementAttributes/>
+      <pos x="540" y="300"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Text</elementName>
+      <elementAttributes>
+        <entry>
+          <string>textFontSize</string>
+          <int>16</int>
+        </entry>
+        <entry>
+          <string>Description</string>
+          <string>NotZero</string>
+        </entry>
+      </elementAttributes>
+      <pos x="580" y="300"/>
     </visualElement>
   </visualElements>
   <wires>
@@ -117,56 +138,60 @@
       <p2 x="980" y="240"/>
     </wire>
     <wire>
-      <p1 x="720" y="260"/>
+      <p1 x="760" y="260"/>
       <p2 x="880" y="260"/>
     </wire>
     <wire>
-      <p1 x="560" y="260"/>
-      <p2 x="620" y="260"/>
+      <p1 x="500" y="260"/>
+      <p2 x="660" y="260"/>
     </wire>
     <wire>
-      <p1 x="560" y="180"/>
-      <p2 x="620" y="180"/>
+      <p1 x="500" y="180"/>
+      <p2 x="660" y="180"/>
     </wire>
     <wire>
-      <p1 x="560" y="340"/>
-      <p2 x="580" y="340"/>
+      <p1 x="500" y="340"/>
+      <p2 x="520" y="340"/>
     </wire>
     <wire>
-      <p1 x="700" y="200"/>
-      <p2 x="720" y="200"/>
+      <p1 x="740" y="200"/>
+      <p2 x="760" y="200"/>
     </wire>
     <wire>
-      <p1 x="700" y="280"/>
-      <p2 x="720" y="280"/>
+      <p1 x="740" y="280"/>
+      <p2 x="760" y="280"/>
     </wire>
     <wire>
-      <p1 x="720" y="220"/>
+      <p1 x="760" y="220"/>
       <p2 x="880" y="220"/>
     </wire>
     <wire>
-      <p1 x="580" y="220"/>
-      <p2 x="620" y="220"/>
+      <p1 x="520" y="220"/>
+      <p2 x="660" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="300"/>
+      <p2 x="540" y="300"/>
     </wire>
     <wire>
       <p1 x="580" y="300"/>
-      <p2 x="600" y="300"/>
+      <p2 x="660" y="300"/>
     </wire>
     <wire>
-      <p1 x="720" y="200"/>
-      <p2 x="720" y="220"/>
+      <p1 x="760" y="260"/>
+      <p2 x="760" y="280"/>
     </wire>
     <wire>
-      <p1 x="720" y="260"/>
-      <p2 x="720" y="280"/>
+      <p1 x="760" y="200"/>
+      <p2 x="760" y="220"/>
     </wire>
     <wire>
-      <p1 x="580" y="220"/>
-      <p2 x="580" y="300"/>
+      <p1 x="520" y="220"/>
+      <p2 x="520" y="300"/>
     </wire>
     <wire>
-      <p1 x="580" y="300"/>
-      <p2 x="580" y="340"/>
+      <p1 x="520" y="300"/>
+      <p2 x="520" y="340"/>
     </wire>
   </wires>
   <measurementOrdering/>
