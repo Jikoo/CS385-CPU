@@ -4,34 +4,33 @@ module CPU (clock,PC,IFID_IR,IDEX_IR,WD);
   
   initial begin
 // Program with nop's - no hazards
-// TODO verify correct registers used
     IMemory[0]  = 16'b0111_00_01_00001111;  // addi $t1, $0,  15   ($t1=15)
     IMemory[1]  = 16'b0111_00_10_00000111;  // addi $t2, $0,  7    ($t2= 7)
     IMemory[2]  = 16'b0000_00_00_00_000000; // nop
     IMemory[3]  = 16'b0010_01_10_11_000000; // and  $t3, $t1, $t2  ($t3= 7)
     IMemory[4]  = 16'b0000_00_00_00_000000; // nop
-    IMemory[5]  = 16'b0001_11_10_01_000000; // sub  $t2, $t1, $t3  ($t2= 8)
+    IMemory[5]  = 16'b0001_01_11_10_000000; // sub  $t2, $t1, $t3  ($t2= 8)
     IMemory[6]  = 16'b0000_00_00_00_000000; // nop
-    IMemory[7]  = 16'b0011_11_10_10_000000; // or   $t2, $t2, $t3  ($t2=15)
+    IMemory[7]  = 16'b0011_10_11_10_000000; // or   $t2, $t2, $t3  ($t2=15)
     IMemory[8]  = 16'b0000_00_00_00_000000; // nop
-    IMemory[9]  = 16'b0000_11_10_11_000000; // add  $t3, $t2, $t3  ($t3=22)
+    IMemory[9]  = 16'b0000_10_11_11_000000; // add  $t3, $t2, $t3  ($t3=22)
     IMemory[10] = 16'b0000_00_00_00_000000; // nop
-    IMemory[11] = 16'b0100_11_01_10_000000; // nor  $t1, $t2, $t3  ($t1=-32)
-    IMemory[12] = 16'b0110_10_01_11_000000; // slt  $t1, $t3, $t2  ($t1= 0)
-    IMemory[13] = 16'b0110_11_01_10_000000; // slt  $t1, $t2, $t3  ($t1= 1)
+    IMemory[11] = 16'b0100_10_11_01_000000; // nor  $t1, $t2, $t3  ($t1=-32)
+    IMemory[12] = 16'b0110_11_10_01_000000; // slt  $t1, $t3, $t2  ($t1= 0)
+    IMemory[13] = 16'b0110_10_11_01_000000; // slt  $t1, $t2, $t3  ($t1= 1)
   end
 /*
   initial begin 
 // Program without nop's - wrong results due to data hazards
-    IMemory[0]  = 16'b0111_00_01_00001111;  // addi $t1, $0,  15   ($t1=15)
-    IMemory[1]  = 16'b0111_00_10_00000111;  // addi $t2, $0,  7    ($t2= 7)
-    IMemory[3]  = 16'b0010_01_10_11_000000; // and  $t3, $t1, $t2  ($t3= 7)
-    IMemory[5]  = 16'b0001_11_10_01_000000; // sub  $t2, $t1, $t3  ($t2= 8)
-    IMemory[7]  = 16'b0011_11_10_10_000000; // or   $t2, $t2, $t3  ($t2=15)
-    IMemory[9]  = 16'b0000_11_10_11_000000; // add  $t3, $t2, $t3  ($t3=22)
-    IMemory[11] = 16'b0100_11_01_10_000000; // nor  $t1, $t2, $t3  ($t1=-32)
-    IMemory[12] = 16'b0110_10_01_11_000000; // slt  $t1, $t3, $t2  ($t1= 0)
-    IMemory[13] = 16'b0110_11_01_10_000000; // slt  $t1, $t2, $t3  ($t1= 1)
+    IMemory[0] = 16'b0111_00_01_00001111;  // addi $t1, $0,  15   ($t1=15)
+    IMemory[1] = 16'b0111_00_10_00000111;  // addi $t2, $0,  7    ($t2= 7)
+    IMemory[2] = 16'b0010_01_10_11_000000; // and  $t3, $t1, $t2  ($t3= 7)
+    IMemory[3] = 16'b0001_01_11_10_000000; // sub  $t2, $t1, $t3  ($t2= 8)
+    IMemory[4] = 16'b0011_10_11_10_000000; // or   $t2, $t2, $t3  ($t2=15)
+    IMemory[5] = 16'b0000_10_11_11_000000; // add  $t3, $t2, $t3  ($t3=22)
+    IMemory[6] = 16'b0100_10_11_01_000000; // nor  $t1, $t2, $t3  ($t1=-32)
+    IMemory[7] = 16'b0110_11_10_01_000000; // slt  $t1, $t3, $t2  ($t1= 0)
+    IMemory[8] = 16'b0110_10_11_01_000000; // slt  $t1, $t2, $t3  ($t1= 1)
   end
 */
 // Pipeline stages
@@ -86,7 +85,7 @@ module CPU (clock,PC,IFID_IR,IDEX_IR,WD);
 
 // Stage 1 - IF
     PC <= NextPC;
-    IFID_IR <= IMemory[PC>>2];
+    IFID_IR <= IMemory[PC>>1];
 
 // Stage 2 - ID
     IDEX_IR <= IFID_IR; // For monitoring the pipeline
