@@ -67,12 +67,14 @@ module CPU (clock,PC,IFID_IR,IDEX_IR,WD);
   mux_2x16 muxData (B, {IDEX_SignExt, IDEX_RD2}, IDEX_ALUSrc);
   // RegDst Mux
   mux_2x2 muxReg (WR, {IDEX_rd, IDEX_rt}, IDEX_RegDst);
-  assign WD = ALUOut; // TODO is there a point to this?
+  assign WD = ALUOut;
 
 // Forwarding multiplexers
-  // TODO gate-level
-  assign FWD_RD1 = (IDEX_RegWrite && WR==IFID_IR[11:10]) ? ALUOut: RD1;
-  assign FWD_RD2 = (IDEX_RegWrite && WR==IFID_IR[9:8]) ? ALUOut: RD2;
+  wire FWD_SEL1, FWD_SEL2;
+  reg_fwd_sel fwd1 (FWD_SEL1, IFID_IR[11:10], WR, IDEX_RegWrite);
+  mux_2x16 muxFwd1 (FWD_RD1, {WD, RD1}, FWD_SEL1);
+  reg_fwd_sel fwd2 (FWD_SEL2, IFID_IR[9:8], WR, IDEX_RegWrite);
+  mux_2x16 muxFwd2 (FWD_RD2, {WD, RD2}, FWD_SEL2);
 
   initial begin
     PC = 0;
@@ -143,6 +145,22 @@ module BranchControl (BranchTaken, BEQ, BNE, Zero);
   and a1 (BeqTaken, BEQ, Zero);
   and a2 (BneTaken, BNE, NotZero);
   or o1 (BranchTaken, BeqTaken, BneTaken);
+endmodule
+
+// Forwarding selection unit
+// Calculates if forwarding should occur for a register
+module reg_fwd_sel(FWD, IR, WR, WE);
+  output FWD;
+  input [1:0] IR, WR;
+  input WE;
+  wire [1:0] ne;
+  wire eq;
+
+  xor xo0 (ne[0], IR[0], WR[0]);
+  xor xo1 (ne[1], IR[1], WR[1]);
+  nor no1 (eq, ne[0], ne[1]);
+
+  and a1 (FWD, WE, eq);
 endmodule
 
 // Register File
